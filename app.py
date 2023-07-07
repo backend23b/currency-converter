@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 
 app = Flask(__name__)
 
@@ -24,7 +24,16 @@ def to_usd():
                 "convertedCurrency": "USD"
             }
     """
-    pass
+    params = request.args
+    amount = params.get('amount')
+    converted = float(amount) / usd
+    data = {
+        'amount': float(amount),
+        'currency': 'UZS',
+        'converted': round(converted, 2),
+        'convertedCurrency': 'USD'
+    }
+    return render_template('index.html', data=data)
 
 @app.route('/api/to-uzs', methods=['GET'])
 def to_uzs():
@@ -46,8 +55,17 @@ def to_uzs():
                 "convertedCurrency": "UZS"
             }
     """
-    pass
+    params = request.args
+    amount = params.get('amount')
+    converted = float(amount) * usd
+    data = {
+        'amount': float(amount),
+        'currency': 'USD',
+        'converted': round(converted, 2),
+        'convertedCurrency': 'UZS'
+    }
+    return render_template('index.html', data=data)
     
 
 if __name__ == '__main__':
-    app.run()    
+    app.run(debug=True)    
