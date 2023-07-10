@@ -4,6 +4,13 @@ app = Flask(__name__)
 
 usd = 11380.7 # 1 USD = 11380.7 UZS
 
+
+@app.route('/')
+def home():
+    return  '<h1>Home</h1>'
+
+
+
 @app.route('/api/to-usd', methods=['GET'])
 def to_usd():
     """
