@@ -1,78 +1,52 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify
+import currencyapicom
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+
+API_KEY = os.environ.get('API_KEY')
+client = currencyapicom.Client(API_KEY)
+
 
 app = Flask(__name__)
 
-usd = 11380.7 # 1 USD = 11380.7 UZS
 
-
-@app.route('/')
-def home():
-    return  '<h1>Home</h1>'
-
-
-
-@app.route('/api/to-usd', methods=['GET'])
+@app.route('/api/v1/convert/', methods=['GET'])
 def to_usd():
-    """
-    Convert to USD
 
-    Returns:
-        json: Converted amount
-    
-    Note:
-        request data will be like this:
-            /api/to-usd?amount=1000
-        
-        response will be like this:
-            {
-                "amount": 1000,
-                "currency": "UZS",
-                "converted": 88.7,
-                "convertedCurrency": "USD"
-            }
-    """
+    # get params
     params = request.args
-    amount = params.get('amount')
-    converted = float(amount) / usd
-    data = {
-        'amount': float(amount),
-        'currency': 'UZS',
-        'converted': round(converted, 2),
-        'convertedCurrency': 'USD'
-    }
-    return render_template('index.html', data=data)
 
-@app.route('/api/to-uzs', methods=['GET'])
-def to_uzs():
-    """
-    Convert to UZS
+    amount = float(params.get('amount'))   # 100 usd
+    base = params.get('base')
 
-    Returns:
-        json: Converted amount
+    # convert
+    result = client.latest(base, currencies=['UZS','EUR', 'USD', 'RUB'])
     
-    Note:
-        request data will be like this:
-            /api/to-uzs?amount=1000
-        
-        response will be like this:
-            {
-                "amount": 1000,
-                "currency": "USD",
-                "converted": 1138070,
-                "convertedCurrency": "UZS"
-            }
-    """
-    params = request.args
-    amount = params.get('amount')
-    converted = float(amount) * usd
-    data = {
-        'amount': float(amount),
-        'currency': 'USD',
-        'converted': round(converted, 2),
-        'convertedCurrency': 'UZS'
-    }
-    return render_template('index.html', data=data)
-    
+    data = result.get('data')
+   
+    ans = [
+        {
+            'currency': 'UZS',
+            'value': data['UZS']['value'] * amount
+        },
+        {
+            'currency': 'EUR',
+            'value': data['EUR']['value'] * amount
+        },
+        {
+            'currency': 'USD',
+            'value': data['USD']['value'] * amount
+        },
+        {
+            'currency': 'RUB',
+            'value': data['RUB']['value'] * amount
+        },
+    ]
+
+    return jsonify(ans)
 
 if __name__ == '__main__':
     app.run(debug=True)    
